@@ -133,20 +133,25 @@
     const team1Key = 'warzone_team1';
     const team2Key = 'warzone_team2';
 
-    // Carica dati salvati
+    // Carica dati salvati con conferma
     window.onload = () => {
       const savedPlayers = localStorage.getItem(storageKey);
-      if (savedPlayers) {
-        textarea.value = savedPlayers;
-      }
-
       const savedTeam1 = JSON.parse(localStorage.getItem(team1Key) || '[]');
       const savedTeam2 = JSON.parse(localStorage.getItem(team2Key) || '[]');
 
-      if (savedTeam1.length > 0 || savedTeam2.length > 0) {
-        document.getElementById('team1').innerHTML = savedTeam1.map(name => `<li>${name}</li>`).join('');
-        document.getElementById('team2').innerHTML = savedTeam2.map(name => `<li>${name}</li>`).join('');
-        document.getElementById('teamsContainer').style.display = 'flex';
+      if (savedPlayers || savedTeam1.length > 0 || savedTeam2.length > 0) {
+        const loadData = confirm("Vuoi caricare i dati salvati dalla sessione precedente?");
+        if (loadData) {
+          if (savedPlayers) {
+            textarea.value = savedPlayers;
+          }
+
+          if (savedTeam1.length > 0 || savedTeam2.length > 0) {
+            document.getElementById('team1').innerHTML = savedTeam1.map(name => `<li>${name}</li>`).join('');
+            document.getElementById('team2').innerHTML = savedTeam2.map(name => `<li>${name}</li>`).join('');
+            document.getElementById('teamsContainer').style.display = 'flex';
+          }
+        }
       }
     };
 
