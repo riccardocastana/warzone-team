@@ -138,8 +138,8 @@
       const savedPlayers = localStorage.getItem(storageKey);
       const savedTeam1 = JSON.parse(localStorage.getItem(team1Key) || '[]');
       const savedTeam2 = JSON.parse(localStorage.getItem(team2Key) || '[]');
-
-      if (savedPlayers || savedTeam1.length > 0 || savedTeam2.length > 0) {
+      setTimeout(() => {
+        if (savedPlayers || savedTeam1.length > 0 || savedTeam2.length > 0) {
         const loadData = confirm("Vuoi caricare i dati salvati dalla sessione precedente?");
         if (loadData) {
           if (savedPlayers) {
@@ -153,6 +153,8 @@
           }
         }
       }
+      }, 500);
+      
     };
 
     // Salva i nomi in tempo reale
