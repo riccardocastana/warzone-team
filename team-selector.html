@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divisione Squadre - Warzone</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      color: #e0e0e0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://c4.wallpaperflare.com/wallpaper/496/318/520/1odst-action-fighting-fps-wallpaper-preview.jpg'); /* Immagine stabile */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.75; /* Rende leggibile il contenuto */
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 3rem auto;
+      background-color: rgba(0, 0, 0, 0.85);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ff9f55;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ff9f;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-bottom: 1rem;
+      background-color: #2c2c2c;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 0.5rem;
+      border-radius: 5px;
+      resize: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background-color: #00ff9f;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+      margin-bottom: 0.5rem;
+    }
+
+    button:hover {
+      background-color: #00cc80;
+    }
+
+    .teams {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .team {
+      flex: 1;
+      background-color: #2c2c2c;
+      padding: 1rem;
+      border-radius: 5px;
+      border: 1px solid #444;
+    }
+
+    .team h2 {
+      margin-top: 0;
+      color: #00ff9f;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 0.3rem;
+      border-bottom: 1px solid #444;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dividi le Squadre - Warzone</h1>
+    <p>Inserisci i nickname (uno per riga):</p>
+    <textarea id="playersInput" placeholder="Es. Ghost&#10;Price&#10;Soap&#10;Gaz&#10;Roach"></textarea>
+    <button onclick="generateTeams()">Genera Squadre</button>
+    <button onclick="clearPlayers()">Cancella Tutti i Nomi</button>
+    <div class="teams" id="teamsContainer" style="display:none;">
+      <div class="team">
+        <h2>Squadra 1</h2>
+        <ul id="team1"></ul>
+      </div>
+      <div class="team">
+        <h2>Squadra 2</h2>
+        <ul id="team2"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const textarea = document.getElementById('playersInput');
+    const storageKey = 'warzone_players';
+
+    // Carica i nomi al caricamento
+    window.onload = () => {
+      const savedPlayers = localStorage.getItem(storageKey);
+      if (savedPlayers) {
+        textarea.value = savedPlayers;
+      }
+    };
+
+    // Salva i nomi ogni volta che vengono modificati
+    textarea.addEventListener('input', () => {
+      localStorage.setItem(storageKey, textarea.value.trim());
+    });
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function generateTeams() {
+      const input = textarea.value.trim();
+      let players = input.split('\n').map(name => name.trim()).filter(name => name !== '');
+      
+      if (players.length < 2) {
+        alert("Inserisci almeno 2 giocatori.");
+        return;
+      }
+
+      shuffleArray(players);
+
+      const team1 = [];
+      const team2 = [];
+
+      players.forEach((player, index) => {
+        if (team1.length < 4 && team1.length <= team2.length) {
+          team1.push(player);
+        } else {
+          team2.push(player);
+        }
+      });
+
+      document.getElementById('team1').innerHTML = team1.map(name => `<li>${name}</li>`).join('');
+      document.getElementById('team2').innerHTML = team2.map(name => `<li>${name}</li>`).join('');
+      document.getElementById('teamsContainer').style.display = 'flex';
+    }
+
+    function clearPlayers() {
+      if (confirm("Sei sicuro di voler cancellare tutti i nomi?")) {
+        textarea.value = '';
+        localStorage.removeItem(storageKey);
+        document.getElementById('teamsContainer').style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
