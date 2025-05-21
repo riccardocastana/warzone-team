@@ -6,7 +6,7 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <title>Divisione Squadre - Warzone</title>
   <style>
-    *{
+    * {
       box-sizing: border-box;
     }
     html, body {
@@ -110,7 +110,12 @@
       text-align: center;
     }
 
-    /* MODALE */
+    @media (max-width: 600px) {
+      .teams {
+        flex-direction: column;
+      }
+    }
+
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -149,15 +154,30 @@
     .modal button {
       flex: 1;
     }
+
+    .toast {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #00ff9f;
+      color: #000;
+      padding: 1rem 2rem;
+      border-radius: 5px;
+      box-shadow: 0 0 10px #00ff9f88;
+      font-weight: bold;
+      display: none;
+      z-index: 1100;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Dividi le Squadre - Warzone</h1>
     <p>Inserisci i nickname (uno per riga):</p>
-    <textarea id="playersInput" placeholder="Es. Ghost&#10;Price&#10;Soap&#10;Gaz&#10;Roach"></textarea>
-    <button onclick="generateTeams()">Genera Squadre</button>
-    <button onclick="clearPlayers()">Cancella Tutti i Nomi</button>
+    <textarea id="playersInput" placeholder="Es. Ghost\nPrice\nSoap\nGaz\nRoach"></textarea>
+    <button id="generateBtn">Genera Squadre</button>
+    <button id="clearBtn">Cancella Tutti i Nomi</button>
     <div class="teams" id="teamsContainer" style="display:none;">
       <div class="team">
         <h2>Squadra 1</h2>
@@ -170,105 +190,115 @@
     </div>
   </div>
 
-  <!-- MODALE PERSONALIZZATA -->
-  <div class="modal-overlay" id="loadModal">
-    <div class="modal">
-      <p>Vuoi caricare i dati salvati dalla sessione precedente?</p>
+  <div class="modal-overlay" id="modal">
+    <div class="modal" role="dialog" aria-labelledby="modalText">
+      <p id="modalText">Vuoi caricare i dati salvati dalla sessione precedente?</p>
       <div class="modal-buttons">
-        <button onclick="loadSavedData()">Carica</button>
-        <button onclick="closeModal()">Ignora</button>
+        <button id="modalConfirm">Conferma</button>
+        <button id="modalCancel">Annulla</button>
       </div>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
     const textarea = document.getElementById('playersInput');
-    const storageKey = 'warzone_players';
-    const team1Key = 'warzone_team1';
-    const team2Key = 'warzone_team2';
+    const generateBtn = document.getElementById('generateBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const modal = document.getElementById('modal');
+    const modalText = document.getElementById('modalText');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+    const toast = document.getElementById('toast');
+    const team1El = document.getElementById('team1');
+    const team2El = document.getElementById('team2');
+    const teamsContainer = document.getElementById('teamsContainer');
 
-    const modal = document.getElementById('loadModal');
+    const STORAGE_KEY = 'warzone_session';
 
-    // Mostra la modale se ci sono dati salvati
-    window.onload = () => {
-      const savedPlayers = localStorage.getItem(storageKey);
-      const savedTeam1 = localStorage.getItem(team1Key);
-      const savedTeam2 = localStorage.getItem(team2Key);
+    const showToast = (msg) => {
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    };
 
-      if (savedPlayers || savedTeam1 || savedTeam2) {
-        modal.style.display = 'flex';
+    const showModal = (text, onConfirm) => {
+      modalText.textContent = text;
+      modal.style.display = 'flex';
+      modalConfirm.onclick = () => {
+        modal.style.display = 'none';
+        onConfirm();
+      };
+      modalCancel.onclick = () => modal.style.display = 'none';
+    };
+
+    const renderTeam = (el, team) => {
+      el.innerHTML = team.map(name => `<li>${name}</li>`).join('');
+    };
+
+    const saveSession = (players, team1, team2) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ players, team1, team2 }));
+    };
+
+    const loadSession = () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const { players, team1, team2 } = JSON.parse(saved);
+      textarea.value = players;
+      renderTeam(team1El, team1);
+      renderTeam(team2El, team2);
+      teamsContainer.style.display = 'flex';
+    };
+
+    const shuffleArray = (arr) => {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
     };
 
-    function loadSavedData() {
-      const savedPlayers = localStorage.getItem(storageKey);
-      const savedTeam1 = JSON.parse(localStorage.getItem(team1Key) || '[]');
-      const savedTeam2 = JSON.parse(localStorage.getItem(team2Key) || '[]');
-
-      if (savedPlayers) textarea.value = savedPlayers;
-      if (savedTeam1.length || savedTeam2.length) {
-        document.getElementById('team1').innerHTML = savedTeam1.map(name => `<li>${name}</li>`).join('');
-        document.getElementById('team2').innerHTML = savedTeam2.map(name => `<li>${name}</li>`).join('');
-        document.getElementById('teamsContainer').style.display = 'flex';
-      }
-      closeModal();
-    }
-
-    function closeModal() {
-      modal.style.display = 'none';
-    }
-
-    // Salva i nomi in tempo reale
-    textarea.addEventListener('input', () => {
-      localStorage.setItem(storageKey, textarea.value.trim());
-    });
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    function generateTeams() {
-      const input = textarea.value.trim();
-      let players = input.split('\n').map(name => name.trim()).filter(name => name !== '');
-
+    generateBtn.addEventListener('click', () => {
+      const players = textarea.value.trim().split('\n').map(p => p.trim()).filter(p => p);
       if (players.length < 2) {
-        alert("Inserisci almeno 2 giocatori.");
+        showModal('Inserisci almeno 2 giocatori.', () => {});
         return;
       }
-
       shuffleArray(players);
-
-      const team1 = [];
-      const team2 = [];
-
-      players.forEach((player, index) => {
-        if (team1.length < 4 && team1.length <= team2.length) {
-          team1.push(player);
-        } else {
-          team2.push(player);
-        }
+      const team1 = [], team2 = [];
+      players.forEach(p => {
+        if (team1.length < 4 && team1.length <= team2.length) team1.push(p);
+        else team2.push(p);
       });
+      renderTeam(team1El, team1);
+      renderTeam(team2El, team2);
+      teamsContainer.style.display = 'flex';
+      saveSession(textarea.value.trim(), team1, team2);
+      showToast('Squadre generate!');
+    });
 
-      localStorage.setItem(team1Key, JSON.stringify(team1));
-      localStorage.setItem(team2Key, JSON.stringify(team2));
-
-      document.getElementById('team1').innerHTML = team1.map(name => `<li>${name}</li>`).join('');
-      document.getElementById('team2').innerHTML = team2.map(name => `<li>${name}</li>`).join('');
-      document.getElementById('teamsContainer').style.display = 'flex';
-    }
-
-    function clearPlayers() {
-      if (confirm("Sei sicuro di voler cancellare tutti i nomi?")) {
+    clearBtn.addEventListener('click', () => {
+      showModal('Sei sicuro di voler cancellare tutti i dati?', () => {
         textarea.value = '';
-        localStorage.removeItem(storageKey);
-        localStorage.removeItem(team1Key);
-        localStorage.removeItem(team2Key);
-        document.getElementById('teamsContainer').style.display = 'none';
+        team1El.innerHTML = '';
+        team2El.innerHTML = '';
+        teamsContainer.style.display = 'none';
+        localStorage.removeItem(STORAGE_KEY);
+        showToast('Dati cancellati.');
+      });
+    });
+
+    textarea.addEventListener('input', () => {
+      const session = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      session.players = textarea.value.trim();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    });
+
+    window.addEventListener('load', () => {
+      if (localStorage.getItem(STORAGE_KEY)) {
+        showModal('Vuoi caricare i dati salvati dalla sessione precedente?', loadSession);
       }
-    }
+    });
   </script>
 </body>
 </html>
