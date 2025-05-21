@@ -233,7 +233,7 @@
     function openClearModal() {
       clearDataModal.style.display = 'flex';
     }
-    
+
     function loadSavedData() {
       const savedPlayers = localStorage.getItem(storageKey);
       const savedTeams = JSON.parse(localStorage.getItem(teamsKey) || '[]');
@@ -258,6 +258,7 @@
     });
 
     function generateTeams() {
+
       const input = textarea.value.trim();
       let players = input.split('\n').map(name => name.trim()).filter(name => name !== '');
 
@@ -265,7 +266,7 @@
         alert("Inserisci almeno 2 giocatori.");
         return;
       }
-
+      shuffleArray(funnyTeamNames);
       shuffleArray(players);
 
       const maxPerTeam = 4;
