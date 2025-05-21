@@ -36,6 +36,7 @@
       padding: 2rem;
       border-radius: 10px;
       box-shadow: 0 0 10px #00ff9f55;
+      position: relative;
     }
 
     h1 {
@@ -106,6 +107,46 @@
       border-bottom: 1px solid #444;
       text-align: center;
     }
+
+    /* MODALE */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+
+    .modal {
+      background-color: #1e1e1e;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ff9f55;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal p {
+      margin-bottom: 2rem;
+      font-size: 1rem;
+    }
+
+    .modal .modal-buttons {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+    }
+
+    .modal button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -127,35 +168,53 @@
     </div>
   </div>
 
+  <!-- MODALE PERSONALIZZATA -->
+  <div class="modal-overlay" id="loadModal">
+    <div class="modal">
+      <p>Vuoi caricare i dati salvati dalla sessione precedente?</p>
+      <div class="modal-buttons">
+        <button onclick="loadSavedData()">Carica</button>
+        <button onclick="closeModal()">Ignora</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const textarea = document.getElementById('playersInput');
     const storageKey = 'warzone_players';
     const team1Key = 'warzone_team1';
     const team2Key = 'warzone_team2';
 
-    // Carica dati salvati con conferma
+    const modal = document.getElementById('loadModal');
+
+    // Mostra la modale se ci sono dati salvati
     window.onload = () => {
+      const savedPlayers = localStorage.getItem(storageKey);
+      const savedTeam1 = localStorage.getItem(team1Key);
+      const savedTeam2 = localStorage.getItem(team2Key);
+
+      if (savedPlayers || savedTeam1 || savedTeam2) {
+        modal.style.display = 'flex';
+      }
+    };
+
+    function loadSavedData() {
       const savedPlayers = localStorage.getItem(storageKey);
       const savedTeam1 = JSON.parse(localStorage.getItem(team1Key) || '[]');
       const savedTeam2 = JSON.parse(localStorage.getItem(team2Key) || '[]');
-      setTimeout(() => {
-        if (savedPlayers || savedTeam1.length > 0 || savedTeam2.length > 0) {
-        const loadData = confirm("Vuoi caricare i dati salvati dalla sessione precedente?");
-        if (loadData) {
-          if (savedPlayers) {
-            textarea.value = savedPlayers;
-          }
 
-          if (savedTeam1.length > 0 || savedTeam2.length > 0) {
-            document.getElementById('team1').innerHTML = savedTeam1.map(name => `<li>${name}</li>`).join('');
-            document.getElementById('team2').innerHTML = savedTeam2.map(name => `<li>${name}</li>`).join('');
-            document.getElementById('teamsContainer').style.display = 'flex';
-          }
-        }
+      if (savedPlayers) textarea.value = savedPlayers;
+      if (savedTeam1.length || savedTeam2.length) {
+        document.getElementById('team1').innerHTML = savedTeam1.map(name => `<li>${name}</li>`).join('');
+        document.getElementById('team2').innerHTML = savedTeam2.map(name => `<li>${name}</li>`).join('');
+        document.getElementById('teamsContainer').style.display = 'flex';
       }
-      }, 500);
-      
-    };
+      closeModal();
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
 
     // Salva i nomi in tempo reale
     textarea.addEventListener('input', () => {
@@ -191,11 +250,9 @@
         }
       });
 
-      // Salva le squadre nello storage
       localStorage.setItem(team1Key, JSON.stringify(team1));
       localStorage.setItem(team2Key, JSON.stringify(team2));
 
-      // Mostra le squadre
       document.getElementById('team1').innerHTML = team1.map(name => `<li>${name}</li>`).join('');
       document.getElementById('team2').innerHTML = team2.map(name => `<li>${name}</li>`).join('');
       document.getElementById('teamsContainer').style.display = 'flex';
