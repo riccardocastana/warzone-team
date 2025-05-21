@@ -182,7 +182,7 @@
     <p>Inserisci i nickname (uno per riga):</p>
     <textarea id="playersInput" placeholder="Es. Ghost&#10;Price&#10;Soap&#10;Gaz&#10;Roach"></textarea>
     <button onclick="generateTeams()">Genera Squadre</button>
-    <button onclick="clearPlayers()">Cancella Tutti i Nomi</button>
+    <button onclick="openClearModal()">Cancella Tutti i Nomi</button>
     <div class="teams" id="teamsContainer"></div>
   </div>
 
@@ -196,10 +196,21 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="clearDataModal">
+    <div class="modal">
+      <p>Vuoi eliminare tutti i dati?</p>
+      <div class="modal-buttons">
+        <button onclick="clearPlayers()">Elimina</button>
+        <button onclick="closeClearDataModal()">Ignora</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const textarea = document.getElementById('playersInput');
     const teamsContainer = document.getElementById('teamsContainer');
     const modal = document.getElementById('loadModal');
+    const clearDataModal = document.getElementById('clearDataModal');
 
     const storageKey = 'warzone_players';
     const teamsKey = 'warzone_teams';
@@ -219,6 +230,10 @@
       }
     };
 
+    function openClearModal() {
+      clearDataModal.style.display = 'flex';
+    }
+    
     function loadSavedData() {
       const savedPlayers = localStorage.getItem(storageKey);
       const savedTeams = JSON.parse(localStorage.getItem(teamsKey) || '[]');
@@ -232,6 +247,10 @@
 
     function closeModal() {
       modal.style.display = 'none';
+    }
+
+    function closeClearDataModal() {
+      clearDataModal.style.display = 'none';
     }
 
     textarea.addEventListener('input', () => {
@@ -280,12 +299,11 @@
     }
 
     function clearPlayers() {
-      if (confirm("Sei sicuro di voler cancellare tutti i nomi?")) {
-        textarea.value = '';
-        localStorage.removeItem(storageKey);
-        localStorage.removeItem(teamsKey);
-        teamsContainer.innerHTML = '';
-      }
+      textarea.value = '';
+      localStorage.removeItem(storageKey);
+      localStorage.removeItem(teamsKey);
+      teamsContainer.innerHTML = '';
+      closeClearDataModal();
     }
 
     function shuffleArray(array) {
